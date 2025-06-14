@@ -1,7 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 
-// Initialize the Gemini API client
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+import { GoogleGenAI } from "@google/genai";
 
 interface TranscriptEntry {
   speaker: 'partyA' | 'partyB' | 'ai';
@@ -21,6 +19,15 @@ interface DebateAnalysis {
   agreementPoints: string[];
   disagreementPoints: string[];
   conclusion: string;
+}
+
+// Initialize the Gemini API client only when needed
+function getGeminiClient(): GoogleGenAI {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('VITE_GEMINI_API_KEY environment variable is not set');
+  }
+  return new GoogleGenAI({ apiKey });
 }
 
 export async function analyzeDebateTranscripts(
@@ -70,6 +77,7 @@ export async function analyzeDebateTranscripts(
   `;
 
   try {
+    const ai = getGeminiClient();
     const result = await ai.models.generateContent({ model: "gemini-2.0-flash", contents: prompt });
 
     const text = result.text;
@@ -96,4 +104,4 @@ export async function analyzeDebateTranscripts(
     console.error('Error analyzing debate:', error);
     throw new Error('Failed to analyze debate transcripts');
   }
-} 
+}

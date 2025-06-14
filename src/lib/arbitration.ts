@@ -1,85 +1,131 @@
-interface TranscriptEntry {
-  speaker: 'partyA' | 'partyB' | 'ai';
+// Define the structure for a single fact
+export interface Fact {
   text: string;
-  timestamp: string;
-  isFinal: boolean;
-  confidence?: number;
-  duration?: number;
-}
-
-interface Fact {
-  text: string;
-  source: 'partyA' | 'partyB';
+  source: 'partyA' | 'partyB' | 'ai';
   timestamp: string;
   confidence: number;
 }
 
-interface LegalMapping {
-  fact: string;
-  relevantLaws: string[];
-  interpretation: string;
-}
-
-interface Verdict {
+// Define the structure for a legal citation
+export interface LegalCitation {
+  caseName: string;
+  court: string;
+  date: string;
   summary: string;
+}
+
+// Define the structure for a timeline event
+export interface TimelineEvent {
+  description: string;
+  timestamp: string;
+  source: 'partyA' | 'partyB' | 'ai';
   facts: Fact[];
-  legalAnalysis: LegalMapping[];
-  decision: string;
+  legalArguments: string[];
+  citations: LegalCitation[];
+}
+
+// Define the structure for a party's argument
+export interface PartyArgument {
+  party: 'partyA' | 'partyB';
+  argument: string;
+  facts: Fact[];
+  legalArguments: string[];
+  citations: LegalCitation[];
+}
+
+// Define the structure for a judge's assessment
+export interface JudgeAssessment {
+  judge: 'fact' | 'legal' | 'procedural';
+  assessment: string;
   reasoning: string;
+  relevantFacts: Fact[];
+  relevantLegalArguments: string[];
+  relevantCitations: LegalCitation[];
 }
 
-export async function analyzeTranscript(transcripts: TranscriptEntry[]): Promise<Verdict> {
-  // Filter out incomplete transcripts
-  const finalTranscripts = transcripts.filter(t => t.isFinal);
+// Define the structure for the final verdict
+export interface FinalVerdict {
+  summary: string;
+  reasoning: string;
+  ruling: string;
+  dissentingOpinions: string[];
+  relevantFacts: Fact[];
+  relevantLegalArguments: string[];
+  relevantCitations: LegalCitation[];
+}
 
-  // Extract facts from transcripts
-  const facts: Fact[] = finalTranscripts.map(entry => ({
-    text: entry.text,
-    source: entry.speaker,
-    timestamp: entry.timestamp,
-    confidence: 0.8 // This would be calculated by the AI model
-  }));
+// Define the structure for the case results
+export interface CaseResults {
+  title: string;
+  disputeAmount: number;
+  timeline: TimelineEvent[];
+  partyAArgument: PartyArgument;
+  partyBArgument: PartyArgument;
+  factJudgeAssessment: JudgeAssessment;
+  legalJudgeAssessment: JudgeAssessment;
+  proceduralJudgeAssessment: JudgeAssessment;
+  finalVerdict: FinalVerdict;
+}
 
-  // Map facts to relevant laws
-  const legalAnalysis: LegalMapping[] = facts.map(fact => ({
-    fact: fact.text,
-    relevantLaws: [
-      "Contract Law Section 1.1",
-      "Commercial Code Article 2"
-    ],
-    interpretation: "This statement relates to the formation of a contract..."
-  }));
+export async function analyzeCase(caseData: {
+  title: string;
+  disputeAmount: number;
+  partyAFile: File | null;
+  partyBFile: File | null;
+}): Promise<CaseResults> {
+  // Placeholder implementation
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
-  // Generate verdict
   return {
-    summary: "Summary of the debate...",
-    facts,
-    legalAnalysis,
-    decision: "Based on the evidence presented...",
-    reasoning: "The decision is based on the following factors..."
+    title: caseData.title,
+    disputeAmount: caseData.disputeAmount,
+    timeline: [],
+    partyAArgument: {
+      party: 'partyA',
+      argument: 'Sample argument from party A',
+      facts: [],
+      legalArguments: [],
+      citations: []
+    },
+    partyBArgument: {
+      party: 'partyB',
+      argument: 'Sample argument from party B',
+      facts: [],
+      legalArguments: [],
+      citations: []
+    },
+    factJudgeAssessment: {
+      judge: 'fact',
+      assessment: 'Assessment by the fact judge',
+      reasoning: 'Reasoning for the assessment',
+      relevantFacts: [],
+      relevantLegalArguments: [],
+      relevantCitations: []
+    },
+    legalJudgeAssessment: {
+      judge: 'legal',
+      assessment: 'Assessment by the legal judge',
+      reasoning: 'Reasoning for the assessment',
+      relevantFacts: [],
+      relevantLegalArguments: [],
+      relevantCitations: []
+    },
+    proceduralJudgeAssessment: {
+      judge: 'procedural',
+      assessment: 'Assessment by the procedural judge',
+      reasoning: 'Reasoning for the assessment',
+      relevantFacts: [],
+      relevantLegalArguments: [],
+      relevantCitations: []
+    },
+    finalVerdict: {
+      summary: 'Summary of the final verdict',
+      reasoning: 'Reasoning for the final verdict',
+      ruling: 'The final ruling',
+      dissentingOpinions: [],
+      relevantFacts: [],
+      relevantLegalArguments: [],
+      relevantCitations: []
+    }
   };
 }
-
-export async function extractFacts(transcript: string): Promise<Fact[]> {
-  // This would use an AI model to extract factual statements
-  return [];
-}
-
-export async function mapToLaws(facts: Fact[]): Promise<LegalMapping[]> {
-  // This would use an AI model to map facts to relevant laws
-  return [];
-}
-
-export async function draftVerdict(
-  facts: Fact[],
-  legalAnalysis: LegalMapping[]
-): Promise<Verdict> {
-  // This would use an AI model to draft a final verdict
-  return {
-    summary: "",
-    facts,
-    legalAnalysis,
-    decision: "",
-    reasoning: ""
-  };
-} 
