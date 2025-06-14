@@ -21,8 +21,10 @@ interface DebateAnalysis {
   conclusion: string;
 }
 
-export async function analyzeDebateTranscripts(transcripts: TranscriptEntry[]): Promise<DebateAnalysis> {
-
+export async function analyzeDebateTranscripts(
+  transcripts: TranscriptEntry[],
+  debateContext: string
+): Promise<DebateAnalysis> {
   // Filter out incomplete transcripts and organize by speaker
   const finalTranscripts = transcripts.filter(t => t.isFinal);
   const partyATranscript = finalTranscripts
@@ -35,6 +37,8 @@ export async function analyzeDebateTranscripts(transcripts: TranscriptEntry[]): 
     .join('\n');
 
   const prompt = `
+    Context of the debate: ${debateContext}
+
     Analyze the following debate between Party A and Party B. Provide a structured analysis including:
     1. A brief summary of the debate
     2. Key points made by each party
@@ -61,7 +65,6 @@ export async function analyzeDebateTranscripts(transcripts: TranscriptEntry[]): 
     }
   `;
 
-    
   try {
     const result = await ai.models.generateContent({ model: "gemini-2.0-flash", contents: prompt });
     console.log(result);    

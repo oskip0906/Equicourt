@@ -4,6 +4,14 @@ import { Card } from "../components/ui/card";
 import { useToast } from "../components/ui/use-toast";
 import { analyzeDebateTranscripts } from '../lib/gemini';
 
+// Add type declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 interface TranscriptEntry {
   speaker: 'partyA' | 'partyB';
   text: string;
@@ -22,7 +30,11 @@ interface DebateAnalysis {
   conclusion: string;
 }
 
-export default function Debate() {
+interface DebateProps {
+  debateContext: string;
+}
+
+export default function Debate({ debateContext }: DebateProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [currentSpeaker, setCurrentSpeaker] = useState<'partyA' | 'partyB'>('partyA');
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
@@ -206,7 +218,7 @@ export default function Debate() {
     setIsAnalyzing(true);
     
     try {
-      const debateAnalysis = await analyzeDebateTranscripts(transcripts);
+      const debateAnalysis = await analyzeDebateTranscripts(transcripts, debateContext);
       setAnalysis(debateAnalysis);
       toast({
         title: "Analysis Complete",
