@@ -39,6 +39,7 @@ interface DebateAnalysis {
   agreementPoints: string[];
   disagreementPoints: string[];
   conclusion: string;
+  finalDecision: string;
 }
 
 interface DebateProps {
@@ -737,6 +738,11 @@ export default function Debate({ debateContext }: DebateProps) {
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Conclusion</h3>
                     <p>{analysis.conclusion}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Final Decision</h3>
+                    <p className="font-medium">{analysis.finalDecision}</p>
                   </div>
                 </div>
               </Card>
