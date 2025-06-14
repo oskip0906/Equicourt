@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { useToast } from "../components/ui/use-toast";
-import { analyzeTranscript } from '../lib/arbitration';
+import { analyzeDebateTranscripts } from '../lib/gemini';
 
 interface TranscriptEntry {
   speaker: 'partyA' | 'partyB';
@@ -11,21 +11,15 @@ interface TranscriptEntry {
   isFinal: boolean;
 }
 
-interface Verdict {
+interface DebateAnalysis {
   summary: string;
-  facts: Array<{
-    text: string;
-    source: 'partyA' | 'partyB';
-    timestamp: string;
-    confidence: number;
-  }>;
-  legalAnalysis: Array<{
-    fact: string;
-    relevantLaws: string[];
-    interpretation: string;
-  }>;
-  decision: string;
-  reasoning: string;
+  keyPoints: {
+    partyA: string[];
+    partyB: string[];
+  };
+  agreementPoints: string[];
+  disagreementPoints: string[];
+  conclusion: string;
 }
 
 export default function Debate() {
@@ -33,7 +27,7 @@ export default function Debate() {
   const [currentSpeaker, setCurrentSpeaker] = useState<'partyA' | 'partyB'>('partyA');
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>([]);
   const [isDebateComplete, setIsDebateComplete] = useState(false);
-  const [verdict, setVerdict] = useState<Verdict | null>(null);
+  const [analysis, setAnalysis] = useState<DebateAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimeoutRef = useRef<number | null>(null);
@@ -212,11 +206,11 @@ export default function Debate() {
     setIsAnalyzing(true);
     
     try {
-      const analysis = await analyzeTranscript(transcripts);
-      setVerdict(analysis);
+      const debateAnalysis = await analyzeDebateTranscripts(transcripts);
+      setAnalysis(debateAnalysis);
       toast({
         title: "Analysis Complete",
-        description: "The debate has been analyzed and a verdict has been prepared.",
+        description: "The debate has been analyzed by Gemini AI.",
       });
     } catch (error) {
       toast({
@@ -298,51 +292,59 @@ export default function Debate() {
           {isAnalyzing ? (
             <Card className="p-6">
               <h2 className="text-2xl font-bold mb-4">Analyzing Debate</h2>
-              <p>Please wait while we analyze the debate and prepare the verdict...</p>
+              <p>Please wait while Gemini AI analyzes the debate...</p>
             </Card>
-          ) : verdict ? (
+          ) : analysis ? (
             <>
               <Card className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Verdict</h2>
-                <div className="space-y-4">
+                <h2 className="text-2xl font-bold mb-4">Debate Analysis</h2>
+                <div className="space-y-6">
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Summary</h3>
-                    <p>{verdict.summary}</p>
+                    <p>{analysis.summary}</p>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Decision</h3>
-                    <p>{verdict.decision}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Reasoning</h3>
-                    <p>{verdict.reasoning}</p>
-                  </div>
-                </div>
-              </Card>
 
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Legal Analysis</h2>
-                <div className="space-y-4">
-                  {verdict.legalAnalysis.map((analysis, index) => (
-                    <div key={index} className="border-b pb-4 last:border-0">
-                      <h3 className="font-semibold mb-2">Fact: {analysis.fact}</h3>
-                      <div className="ml-4">
-                        <p className="mb-2">
-                          <span className="font-medium">Relevant Laws:</span>
-                          <ul className="list-disc list-inside ml-4">
-                            {analysis.relevantLaws.map((law, i) => (
-                              <li key={i}>{law}</li>
-                            ))}
-                          </ul>
-                        </p>
-                        <p>
-                          <span className="font-medium">Interpretation:</span>
-                          <br />
-                          {analysis.interpretation}
-                        </p>
-                      </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Party A's Key Points</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {analysis.keyPoints.partyA.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
                     </div>
-                  ))}
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Party B's Key Points</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {analysis.keyPoints.partyB.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Points of Agreement</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {analysis.agreementPoints.map((point, index) => (
+                        <li key={index}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Points of Disagreement</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {analysis.disagreementPoints.map((point, index) => (
+                        <li key={index}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Conclusion</h3>
+                    <p>{analysis.conclusion}</p>
+                  </div>
                 </div>
               </Card>
 
@@ -352,7 +354,7 @@ export default function Debate() {
                     setTranscripts([]);
                     setCurrentSpeaker('partyA');
                     setIsDebateComplete(false);
-                    setVerdict(null);
+                    setAnalysis(null);
                   }}
                 >
                   Start New Debate
