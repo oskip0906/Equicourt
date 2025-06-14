@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -483,268 +484,280 @@ export default function Debate({ debateContext }: DebateProps) {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">Debate Recording</h1>
-      
-      {!isDebateComplete ? (
-        <>
-          <div className="mb-6">
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">
-                  Current Speaker: {currentSpeaker === 'partyA' ? 'Party A' : 'Party B'}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <span className={`inline-block w-3 h-3 rounded-full ${isRecording ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
-                  <span className="text-sm text-gray-600">
-                    {isRecording ? 'Recording' : isPaused ? 'Paused' : 'Stopped'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-blue-700">Party A</h3>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-green-700">Party B</h3>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {!isRecording && !isPaused ? (
-                  <Button
-                    onClick={startRecording}
-                    className="flex items-center gap-2"
-                  >
-                    <Mic className="h-4 w-4" />
-                    Start Recording
-                  </Button>
-                ) : isPaused ? (
-                  <Button
-                    onClick={resumeRecording}
-                    className="flex items-center gap-2"
-                  >
-                    <Play className="h-4 w-4" />
-                    Resume Recording
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={pauseRecording}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <Pause className="h-4 w-4" />
-                    Pause Recording
-                  </Button>
-                )}
-                <Button
-                  onClick={stopRecording}
-                  variant="outline"
-                  disabled={!isRecording && !isPaused}
-                  className="flex items-center gap-2"
-                >
-                  <MicOff className="h-4 w-4" />
-                  Stop Recording
-                </Button>
-                <Button
-                  onClick={switchSpeaker}
-                  variant="secondary"
-                  disabled={isRecording}
-                  className="flex items-center gap-2"
-                >
-                  Switch Speaker
-                </Button>
-                <Button
-                  onClick={resetDebate}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reset
-                </Button>
-
-                <Button
-                  onClick={finishDebate}
-                  variant="outline"
-                  disabled={transcripts.length === 0}
-                  className="flex items-center gap-2"
-                >
-                  Finish Debate
-                </Button>
-              </div>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Transcript</h2>
-            {transcripts.map((entry, index) => (
-              <Card key={index} className={`p-4 ${
-                entry.speaker === 'partyA' ? 'bg-blue-50' : 
-                entry.speaker === 'partyB' ? 'bg-green-50' : 
-                'bg-purple-50'
-              }`}>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">
-                      {entry.speaker === 'partyA' ? 'Party A' : 
-                       entry.speaker === 'partyB' ? 'Party B' : 
-                       'AI Assistant'}
-                    </h3>
-                    {!entry.isFinal && (
-                      <span className="text-sm text-gray-500">(In progress...)</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">{entry.timestamp}</span>
-                    <span className="text-xs text-gray-400">
-                      {formatTime(entry.duration / 1000)}
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+      <div className="container mx-auto p-4 max-w-4xl">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-amber-900 mb-2">Debate Recording</h1>
+          <p className="text-amber-700">Record statements from both parties for AI analysis</p>
+        </div>
+        
+        {!isDebateComplete ? (
+          <>
+            <div className="mb-6">
+              <Card className="p-6 bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-semibold text-amber-900">
+                    Current Speaker: {currentSpeaker === 'partyA' ? 'Party A' : 'Party B'}
+                  </h2>
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-block w-4 h-4 rounded-full ${isRecording ? 'bg-green-500 animate-pulse' : 'bg-amber-300'}`} />
+                    <span className="text-sm text-amber-700 font-medium">
+                      {isRecording ? 'Recording' : isPaused ? 'Paused' : 'Stopped'}
                     </span>
                   </div>
                 </div>
-                <p className="whitespace-pre-wrap">{entry.text}</p>
-                {entry.confidence < 0.8 && entry.speaker !== 'ai' && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Low confidence transcription
-                  </p>
-                )}
-              </Card>
-            ))}
-          </div>
 
-          {interimAnalysis && (
-            <div className="mt-8">
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Current Analysis</h2>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Summary</h3>
-                    <p>{interimAnalysis.summary}</p>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl border border-blue-300">
+                    <h3 className="text-lg font-semibold text-blue-800">Party A</h3>
+                    <p className="text-sm text-blue-600 mt-1">Speaking time: {formatTime(speakingStats.partyA.time)}</p>
                   </div>
+                  <div className="p-4 bg-gradient-to-br from-green-100 to-green-200 rounded-xl border border-green-300">
+                    <h3 className="text-lg font-semibold text-green-800">Party B</h3>
+                    <p className="text-sm text-green-600 mt-1">Speaking time: {formatTime(speakingStats.partyB.time)}</p>
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Party A's Key Points</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {interimAnalysis.keyPoints.partyA.map((point, index) => (
-                          <li key={index}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Party B's Key Points</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {interimAnalysis.keyPoints.partyB.map((point, index) => (
-                          <li key={index}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                <div className="flex flex-wrap gap-3">
+                  {!isRecording && !isPaused ? (
+                    <Button
+                      onClick={startRecording}
+                      className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg"
+                    >
+                      <Mic className="h-4 w-4" />
+                      Start Recording
+                    </Button>
+                  ) : isPaused ? (
+                    <Button
+                      onClick={resumeRecording}
+                      className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg"
+                    >
+                      <Play className="h-4 w-4" />
+                      Resume Recording
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={pauseRecording}
+                      variant="outline"
+                      className="flex items-center gap-2 border-amber-300 text-amber-700 hover:bg-amber-50"
+                    >
+                      <Pause className="h-4 w-4" />
+                      Pause Recording
+                    </Button>
+                  )}
+                  <Button
+                    onClick={stopRecording}
+                    variant="outline"
+                    disabled={!isRecording && !isPaused}
+                    className="flex items-center gap-2 border-amber-300 text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                  >
+                    <MicOff className="h-4 w-4" />
+                    Stop Recording
+                  </Button>
+                  <Button
+                    onClick={switchSpeaker}
+                    variant="secondary"
+                    disabled={isRecording}
+                    className="flex items-center gap-2 bg-amber-200 text-amber-800 hover:bg-amber-300"
+                  >
+                    Switch Speaker
+                  </Button>
+                  <Button
+                    onClick={resetDebate}
+                    variant="outline"
+                    className="flex items-center gap-2 border-amber-300 text-amber-700 hover:bg-amber-50"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset
+                  </Button>
 
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Points of Agreement</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {interimAnalysis.agreementPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Points of Disagreement</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {interimAnalysis.disagreementPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Current Conclusion</h3>
-                    <p>{interimAnalysis.conclusion}</p>
-                  </div>
+                  <Button
+                    onClick={finishDebate}
+                    variant="outline"
+                    disabled={transcripts.length === 0}
+                    className="flex items-center gap-2 border-amber-600 text-amber-800 hover:bg-amber-100 disabled:opacity-50 font-semibold"
+                  >
+                    Finish Debate
+                  </Button>
                 </div>
               </Card>
             </div>
-          )}
-        </>
-      ) : (
-        <div className="space-y-6">
-          {isAnalyzing ? (
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Analyzing Debate</h2>
-              <p>Please wait while Gemini AI analyzes the debate...</p>
-            </Card>
-          ) : analysis ? (
-            <>
-              <Card className="p-6">
-                <h2 className="text-2xl font-bold mb-4">Debate Analysis</h2>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Summary</h3>
-                    <p>{analysis.summary}</p>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold mb-4 text-amber-900">Transcript</h2>
+              {transcripts.map((entry, index) => (
+                <Card key={index} className={`p-4 shadow-lg border-2 ${
+                  entry.speaker === 'partyA' ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200' : 
+                  entry.speaker === 'partyB' ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200' : 
+                  'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200'
+                }`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className={`font-semibold ${
+                        entry.speaker === 'partyA' ? 'text-blue-800' :
+                        entry.speaker === 'partyB' ? 'text-green-800' :
+                        'text-purple-800'
+                      }`}>
+                        {entry.speaker === 'partyA' ? 'Party A' : 
+                         entry.speaker === 'partyB' ? 'Party B' : 
+                         'AI Assistant'}
+                      </h3>
+                      {!entry.isFinal && (
+                        <span className="text-sm text-amber-600 font-medium">(In progress...)</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-amber-700">{entry.timestamp}</span>
+                      <span className="text-xs text-amber-600">
+                        {formatTime(entry.duration / 1000)}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="whitespace-pre-wrap text-slate-800">{entry.text}</p>
+                  {entry.confidence < 0.8 && entry.speaker !== 'ai' && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Low confidence transcription
+                    </p>
+                  )}
+                </Card>
+              ))}
+            </div>
+
+            {interimAnalysis && (
+              <div className="mt-8">
+                <Card className="p-6 bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 shadow-xl">
+                  <h2 className="text-2xl font-bold mb-4 text-amber-900">Current Analysis</h2>
+                  <div className="space-y-6">
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Party A's Key Points</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {analysis.keyPoints.partyA.map((point, index) => (
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Summary</h3>
+                      <p className="text-slate-800">{interimAnalysis.summary}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-amber-800">Party A's Key Points</h3>
+                        <ul className="list-disc list-inside space-y-1 text-slate-800">
+                          {interimAnalysis.keyPoints.partyA.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-amber-800">Party B's Key Points</h3>
+                        <ul className="list-disc list-inside space-y-1 text-slate-800">
+                          {interimAnalysis.keyPoints.partyB.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Points of Agreement</h3>
+                      <ul className="list-disc list-inside space-y-1 text-slate-800">
+                        {interimAnalysis.agreementPoints.map((point, index) => (
                           <li key={index}>{point}</li>
                         ))}
                       </ul>
                     </div>
+
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Party B's Key Points</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {analysis.keyPoints.partyB.map((point, index) => (
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Points of Disagreement</h3>
+                      <ul className="list-disc list-inside space-y-1 text-slate-800">
+                        {interimAnalysis.disagreementPoints.map((point, index) => (
                           <li key={index}>{point}</li>
                         ))}
                       </ul>
                     </div>
-                  </div>
 
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Points of Agreement</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {analysis.agreementPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Current Conclusion</h3>
+                      <p className="text-slate-800">{interimAnalysis.conclusion}</p>
+                    </div>
                   </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Points of Disagreement</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {analysis.disagreementPoints.map((point, index) => (
-                        <li key={index}>{point}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Conclusion</h3>
-                    <p>{analysis.conclusion}</p>
-                  </div>
-                </div>
-              </Card>
-
-              <div className="flex justify-center">
-                <Button
-                  onClick={() => {
-                    setTranscripts([]);
-                    setCurrentSpeaker('partyA');
-                    setIsDebateComplete(false);
-                    setAnalysis(null);
-                  }}
-                >
-                  Start New Debate
-                </Button>
+                </Card>
               </div>
-            </>
-          ) : null}
-        </div>
-      )}
+            )}
+          </>
+        ) : (
+          <div className="space-y-6">
+            {isAnalyzing ? (
+              <Card className="p-6 bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 shadow-xl">
+                <h2 className="text-2xl font-bold mb-4 text-amber-900">Analyzing Debate</h2>
+                <p className="text-amber-700">Please wait while Gemini AI analyzes the debate...</p>
+              </Card>
+            ) : analysis ? (
+              <>
+                <Card className="p-6 bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-200 shadow-xl">
+                  <h2 className="text-2xl font-bold mb-4 text-amber-900">Debate Analysis</h2>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Summary</h3>
+                      <p className="text-slate-800">{analysis.summary}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-amber-800">Party A's Key Points</h3>
+                        <ul className="list-disc list-inside space-y-1 text-slate-800">
+                          {analysis.keyPoints.partyA.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-amber-800">Party B's Key Points</h3>
+                        <ul className="list-disc list-inside space-y-1 text-slate-800">
+                          {analysis.keyPoints.partyB.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Points of Agreement</h3>
+                      <ul className="list-disc list-inside space-y-1 text-slate-800">
+                        {analysis.agreementPoints.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Points of Disagreement</h3>
+                      <ul className="list-disc list-inside space-y-1 text-slate-800">
+                        {analysis.disagreementPoints.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-amber-800">Conclusion</h3>
+                      <p className="text-slate-800">{analysis.conclusion}</p>
+                    </div>
+                  </div>
+                </Card>
+
+                <div className="flex justify-center">
+                  <Button
+                    onClick={() => {
+                      setTranscripts([]);
+                      setCurrentSpeaker('partyA');
+                      setIsDebateComplete(false);
+                      setAnalysis(null);
+                    }}
+                    className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg"
+                  >
+                    Start New Debate
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        )}
+      </div>
     </div>
   );
-} 
+}
