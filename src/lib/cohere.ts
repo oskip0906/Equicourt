@@ -121,7 +121,7 @@ ${partyATranscript}
 
 ${partyBTranscript}
 
-Respond like a normal person having a conversation and friendly.`;
+Respond like a normal person having a conversation and friendly also ask follow up questions based on the previous response.`;
 
   try {
     const response = await cohere.chat({
