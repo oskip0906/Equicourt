@@ -3,6 +3,7 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { useToast } from "../components/ui/use-toast";
 import { generateDebateResponse } from '../lib/cohere';
+import { analyzeDebateTranscripts } from '../lib/gemini';
 import { Mic, MicOff, Pause, Play, RotateCcw } from 'lucide-react';
 
 // Add type declarations for Web Speech API
@@ -336,17 +337,8 @@ export default function Debate({ debateContext }: DebateProps) {
 
     setIsAnalyzing(true);
     try {
-      const response = await generateDebateResponse(transcripts, debateContext);
-      setAnalysis({
-        summary: response,
-        keyPoints: {
-          partyA: [],
-          partyB: []
-        },
-        agreementPoints: [],
-        disagreementPoints: [],
-        conclusion: response
-      });
+      const analysis = await analyzeDebateTranscripts(transcripts, debateContext);
+      setAnalysis(analysis);
       setIsDebateComplete(true);
       toast({
         title: "Debate Complete",

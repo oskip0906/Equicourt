@@ -4,10 +4,12 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 interface TranscriptEntry {
-  speaker: 'partyA' | 'partyB';
+  speaker: 'partyA' | 'partyB' | 'ai';
   text: string;
   timestamp: string;
   isFinal: boolean;
+  confidence?: number;
+  duration?: number;
 }
 
 interface DebateAnalysis {
@@ -40,11 +42,11 @@ export async function analyzeDebateTranscripts(
     Context of the debate: ${debateContext}
 
     Analyze the following debate between Party A and Party B. Provide a structured analysis including:
-    1. A brief summary of the debate
-    2. Key points made by each party
-    3. Points of agreement
-    4. Points of disagreement
-    5. A conclusion
+    1. A brief summary of the debate (focus on the overall flow and main topics discussed)
+    2. Key points made by each party (extract 2-3 main arguments or positions from each speaker)
+    3. Points of agreement (list specific areas where both parties aligned)
+    4. Points of disagreement (list specific areas where parties had different views)
+    5. A conclusion (provide a final assessment of the debate outcome and remaining open questions)
 
     Party A's statements:
     ${partyATranscript}
@@ -54,27 +56,41 @@ export async function analyzeDebateTranscripts(
 
     Please format your response as a JSON object with the following structure:
     {
-      "summary": "Brief summary of the debate",
+      "summary": "Brief summary of the debate flow and main topics",
       "keyPoints": {
-        "partyA": ["point 1", "point 2", ...],
-        "partyB": ["point 1", "point 2", ...]
+        "partyA": ["specific point 1", "specific point 2", "specific point 3"],
+        "partyB": ["specific point 1", "specific point 2", "specific point 3"]
       },
-      "agreementPoints": ["point 1", "point 2", ...],
-      "disagreementPoints": ["point 1", "point 2", ...],
-      "conclusion": "Overall conclusion of the debate"
+      "agreementPoints": ["specific agreement 1", "specific agreement 2"],
+      "disagreementPoints": ["specific disagreement 1", "specific disagreement 2"],
+      "conclusion": "Final assessment of debate outcome and remaining questions"
     }
+
+    Important: Ensure the summary and conclusion are distinct, and each keyPoints array contains specific points from each party's statements.
   `;
 
   try {
     const result = await ai.models.generateContent({ model: "gemini-2.0-flash", contents: prompt });
-    console.log(result);    
+
     const text = result.text;
-    
+
     // Clean up the response text by removing markdown code block formatting
-    const cleanedText = text.replace(/```json\n|\n```/g, '');
+    const cleanedText = text.replace(/```json\n|\n```/g, '').trim();
     
     // Parse the JSON response
     const analysis = JSON.parse(cleanedText) as DebateAnalysis;
+
+    // Validate the response structure
+    if (!analysis.keyPoints.partyA.length || !analysis.keyPoints.partyB.length) {
+      console.warn('Empty key points detected, regenerating response...');
+      return analyzeDebateTranscripts(transcripts, debateContext);
+    }
+
+    // Ensure summary and conclusion are distinct
+    if (analysis.summary === analysis.conclusion) {
+      analysis.conclusion = `Based on the debate, ${analysis.conclusion}`;
+    }
+
     return analysis;
   } catch (error) {
     console.error('Error analyzing debate:', error);
