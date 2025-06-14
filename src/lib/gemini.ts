@@ -53,8 +53,9 @@ export async function analyzeDebateTranscripts(
     2. Key points made by each party (extract 2-3 main arguments or positions from each speaker)
     3. Points of agreement (list specific areas where both parties aligned)
     4. Points of disagreement (list specific areas where parties had different views)
-    5. A conclusion (provide a final assessment of the debate outcome and remaining open questions)
-
+    5. Please act as a body of the constituition of Canada and the laws of Canada, specifically for Ontario.
+    6. A conclusion (provide a final assessment of the debate outcome and remaining open questions) and what the next steps should be.
+    7. If there is enough context, please specify the winner of the debate and why. If not, say that the debate is inconclusive.
     Party A's statements:
     ${partyATranscript}
 
@@ -105,3 +106,6 @@ export async function analyzeDebateTranscripts(
     throw new Error('Failed to analyze debate transcripts');
   }
 }
+
+
+
