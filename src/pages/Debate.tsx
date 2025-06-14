@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { useToast } from "../components/ui/use-toast";
-import { analyzeDebateTranscripts } from '../lib/gemini';
+import { generateDebateResponse } from '../lib/cohere';
 import { Mic, MicOff, Pause, Play, RotateCcw } from 'lucide-react';
 
 // Add type declarations for Web Speech API
@@ -280,22 +280,39 @@ export default function Debate({ debateContext }: DebateProps) {
   };
 
   const finishDebate = async () => {
-    stopRecording();
-    setIsDebateComplete(true);
-    setIsAnalyzing(true);
-    
-    try {
-      const debateAnalysis = await analyzeDebateTranscripts(transcripts, debateContext);
-      setAnalysis(debateAnalysis);
+    if (transcripts.length === 0) {
       toast({
-        title: "Analysis Complete",
-        description: "The debate has been analyzed by Gemini AI.",
+        title: "No Transcripts",
+        description: "Cannot finish debate without any transcripts.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const response = await generateDebateResponse(transcripts, debateContext);
+      setAnalysis({
+        summary: response,
+        keyPoints: {
+          partyA: [],
+          partyB: []
+        },
+        agreementPoints: [],
+        disagreementPoints: [],
+        conclusion: response
+      });
+      setIsDebateComplete(true);
+      toast({
+        title: "Debate Complete",
+        description: "The debate has been analyzed and completed."
       });
     } catch (error) {
+      console.error('Error analyzing debate:', error);
       toast({
         title: "Analysis Failed",
         description: "Failed to analyze the debate. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsAnalyzing(false);
@@ -388,31 +405,40 @@ export default function Debate({ debateContext }: DebateProps) {
   };
 
   const generateResponse = async () => {
-    if (transcripts.length === 0) return;
-    
+    if (transcripts.length === 0) {
+      toast({
+        title: "No Transcripts",
+        description: "No transcripts available to generate response",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGeneratingResponse(true);
     try {
-      const debateAnalysis = await analyzeDebateTranscripts(transcripts, debateContext);
+      const response = await generateDebateResponse(transcripts, debateContext);
       
-      // Add AI response to the transcripts
-      setTranscripts(prev => [...prev, {
+      // Add AI response to transcripts
+      const newTranscript: TranscriptEntry = {
         speaker: 'ai',
-        text: debateAnalysis.summary,
-        timestamp: new Date().toLocaleTimeString(),
+        text: response,
+        timestamp: new Date().toISOString(),
         isFinal: true,
         confidence: 1,
         duration: 0
-      }]);
-
+      };
+      
+      setTranscripts(prev => [...prev, newTranscript]);
       toast({
         title: "Response Generated",
-        description: "AI has added its response to the debate.",
+        description: "AI has added its response to the debate."
       });
     } catch (error) {
+      console.error('Error generating response:', error);
       toast({
         title: "Response Failed",
         description: "Failed to generate AI response. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsGeneratingResponse(false);
