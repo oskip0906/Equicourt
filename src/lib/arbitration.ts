@@ -1,8 +1,10 @@
 interface TranscriptEntry {
-  speaker: 'partyA' | 'partyB';
+  speaker: 'partyA' | 'partyB' | 'ai';
   text: string;
   timestamp: string;
   isFinal: boolean;
+  confidence?: number;
+  duration?: number;
 }
 
 interface Fact {

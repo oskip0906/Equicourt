@@ -505,13 +505,9 @@ export default function Debate({ debateContext }: DebateProps) {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <h3 className="text-sm font-medium text-blue-700">Party A</h3>
-                  <p className="text-sm text-blue-600">Time: {formatTime(speakingStats.partyA.time)}</p>
-                  <p className="text-sm text-blue-600">Words: {speakingStats.partyA.words}</p>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
                   <h3 className="text-sm font-medium text-green-700">Party B</h3>
-                  <p className="text-sm text-green-600">Time: {formatTime(speakingStats.partyB.time)}</p>
-                  <p className="text-sm text-green-600">Words: {speakingStats.partyB.words}</p>
                 </div>
               </div>
 
@@ -567,14 +563,7 @@ export default function Debate({ debateContext }: DebateProps) {
                   <RotateCcw className="h-4 w-4" />
                   Reset
                 </Button>
-                <Button
-                  onClick={generateResponse}
-                  variant="secondary"
-                  disabled={transcripts.length === 0 || isGeneratingResponse}
-                  className="flex items-center gap-2"
-                >
-                  {isGeneratingResponse ? 'Generating...' : 'Generate Response'}
-                </Button>
+
                 <Button
                   onClick={finishDebate}
                   variant="outline"
