@@ -1,12 +1,10 @@
 
 import React, { useState } from 'react';
-import { Upload, FileAudio, DollarSign, FileText, Type } from 'lucide-react';
+import { Upload, FileAudio, DollarSign, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CaseData } from '../pages/Index';
 
 interface CaseSubmissionProps {
@@ -18,10 +16,6 @@ const CaseSubmission: React.FC<CaseSubmissionProps> = ({ onSubmit }) => {
   const [disputeAmount, setDisputeAmount] = useState<number>(0);
   const [partyAFile, setPartyAFile] = useState<File | null>(null);
   const [partyBFile, setPartyBFile] = useState<File | null>(null);
-  const [partyAText, setPartyAText] = useState('');
-  const [partyBText, setPartyBText] = useState('');
-  const [partyAInputType, setPartyAInputType] = useState<'file' | 'text'>('file');
-  const [partyBInputType, setPartyBInputType] = useState<'file' | 'text'>('file');
 
   const handleFileUpload = (file: File, party: 'A' | 'B') => {
     if (party === 'A') {
@@ -32,30 +26,23 @@ const CaseSubmission: React.FC<CaseSubmissionProps> = ({ onSubmit }) => {
   };
 
   const handleSubmit = () => {
-    const hasPartyAInput = partyAInputType === 'file' ? partyAFile : partyAText.trim();
-    const hasPartyBInput = partyBInputType === 'file' ? partyBFile : partyBText.trim();
-    
-    if (title && disputeAmount > 0 && hasPartyAInput && hasPartyBInput) {
+    if (title && disputeAmount > 0 && partyAFile && partyBFile) {
       onSubmit({
         title,
         disputeAmount,
-        partyAFile: partyAInputType === 'file' ? partyAFile : null,
-        partyBFile: partyBInputType === 'file' ? partyBFile : null,
-        partyAText: partyAInputType === 'text' ? partyAText : '',
-        partyBText: partyBInputType === 'text' ? partyBText : ''
+        partyAFile,
+        partyBFile
       });
     }
   };
 
-  const hasPartyAInput = partyAInputType === 'file' ? partyAFile : partyAText.trim();
-  const hasPartyBInput = partyBInputType === 'file' ? partyBFile : partyBText.trim();
-  const isValid = title && disputeAmount > 0 && hasPartyAInput && hasPartyBInput;
+  const isValid = title && disputeAmount > 0 && partyAFile && partyBFile;
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-slate-800 mb-4">Submit Your Dispute for AI Arbitration</h2>
-        <p className="text-slate-600 text-lg">Provide statements from both parties to begin the resolution process</p>
+        <p className="text-slate-600 text-lg">Upload audio statements from both parties to begin the resolution process</p>
       </div>
 
       <Card className="mb-8">
@@ -97,26 +84,18 @@ const CaseSubmission: React.FC<CaseSubmissionProps> = ({ onSubmit }) => {
       </Card>
 
       <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <StatementInputCard
+        <FileUploadCard
           title="Party A Statement"
-          description="Provide statement from the first party"
+          description="Upload audio recording from the first party"
           file={partyAFile}
-          text={partyAText}
-          inputType={partyAInputType}
           onFileSelect={(file) => handleFileUpload(file, 'A')}
-          onTextChange={setPartyAText}
-          onInputTypeChange={setPartyAInputType}
           partyColor="bg-blue-50 border-blue-200"
         />
-        <StatementInputCard
+        <FileUploadCard
           title="Party B Statement"
-          description="Provide statement from the second party"
+          description="Upload audio recording from the second party"
           file={partyBFile}
-          text={partyBText}
-          inputType={partyBInputType}
           onFileSelect={(file) => handleFileUpload(file, 'B')}
-          onTextChange={setPartyBText}
-          onInputTypeChange={setPartyBInputType}
           partyColor="bg-green-50 border-green-200"
         />
       </div>
@@ -135,27 +114,19 @@ const CaseSubmission: React.FC<CaseSubmissionProps> = ({ onSubmit }) => {
   );
 };
 
-interface StatementInputCardProps {
+interface FileUploadCardProps {
   title: string;
   description: string;
   file: File | null;
-  text: string;
-  inputType: 'file' | 'text';
   onFileSelect: (file: File) => void;
-  onTextChange: (text: string) => void;
-  onInputTypeChange: (type: 'file' | 'text') => void;
   partyColor: string;
 }
 
-const StatementInputCard: React.FC<StatementInputCardProps> = ({
+const FileUploadCard: React.FC<FileUploadCardProps> = ({
   title,
   description,
   file,
-  text,
-  inputType,
   onFileSelect,
-  onTextChange,
-  onInputTypeChange,
   partyColor
 }) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,59 +140,35 @@ const StatementInputCard: React.FC<StatementInputCardProps> = ({
     <Card className={partyColor}>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          {inputType === 'file' ? <FileAudio className="h-5 w-5" /> : <Type className="h-5 w-5" />}
+          <FileAudio className="h-5 w-5" />
           <span>{title}</span>
         </CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={inputType} onValueChange={(value) => onInputTypeChange(value as 'file' | 'text')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="file" className="flex items-center space-x-2">
-              <FileAudio className="h-4 w-4" />
-              <span>Audio File</span>
-            </TabsTrigger>
-            <TabsTrigger value="text" className="flex items-center space-x-2">
-              <Type className="h-4 w-4" />
-              <span>Text Input</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="file" className="mt-4">
-            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
-              <input
-                type="file"
-                accept=".mp3,.wav,.m4a,.aac"
-                onChange={handleFileChange}
-                className="hidden"
-                id={`file-${title}`}
-              />
-              <label htmlFor={`file-${title}`} className="cursor-pointer">
-                <Upload className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-                {file ? (
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">{file.name}</p>
-                    <p className="text-xs text-slate-500">Click to replace</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Click to upload audio</p>
-                    <p className="text-xs text-slate-500">MP3, WAV, M4A up to 50MB</p>
-                  </div>
-                )}
-              </label>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="text" className="mt-4">
-            <Textarea
-              placeholder="Enter the party's statement here..."
-              value={text}
-              onChange={(e) => onTextChange(e.target.value)}
-              className="min-h-[120px]"
-            />
-          </TabsContent>
-        </Tabs>
+        <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
+          <input
+            type="file"
+            accept=".mp3,.wav,.m4a,.aac"
+            onChange={handleFileChange}
+            className="hidden"
+            id={`file-${title}`}
+          />
+          <label htmlFor={`file-${title}`} className="cursor-pointer">
+            <Upload className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+            {file ? (
+              <div>
+                <p className="text-sm font-medium text-slate-700">{file.name}</p>
+                <p className="text-xs text-slate-500">Click to replace</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm font-medium text-slate-700">Click to upload audio</p>
+                <p className="text-xs text-slate-500">MP3, WAV, M4A up to 50MB</p>
+              </div>
+            )}
+          </label>
+        </div>
       </CardContent>
     </Card>
   );
