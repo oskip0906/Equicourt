@@ -56,6 +56,8 @@ export default function Debate({ debateContext }: DebateProps) {
     partyA: { time: 0, words: 0 },
     partyB: { time: 0, words: 0 }
   });
+  const [lastSpeaker, setLastSpeaker] = useState<'partyA' | 'partyB' | null>(null);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimeoutRef = useRef<number | null>(null);
@@ -121,13 +123,13 @@ export default function Debate({ debateContext }: DebateProps) {
         }
         silenceTimeoutRef.current = window.setTimeout(() => {
           if (isRecordingRef.current && !isPaused) {
+            stopRecording();
             toast({
-              title: "Recording Paused",
-              description: "No speech detected for 5 seconds.",
+              title: "Recording Stopped",
+              description: "No speech detected for 3 seconds.",
             });
-            pauseRecording();
           }
-        }, 5000);
+        }, 3000);
       };
 
       recognition.onspeechend = () => {
@@ -136,13 +138,13 @@ export default function Debate({ debateContext }: DebateProps) {
         }
         silenceTimeoutRef.current = window.setTimeout(() => {
           if (isRecordingRef.current) {
-            toast({
-              title: "Recording Paused",
-              description: "No speech detected for 5 seconds.",
-            });
             stopRecording();
+            toast({
+              title: "Recording Stopped",
+              description: "No speech detected for 3 seconds.",
+            });
           }
-        }, 5000);
+        }, 3000);
       };
 
       recognition.onerror = (event: SpeechRecognitionEvent) => {
@@ -270,14 +272,57 @@ export default function Debate({ debateContext }: DebateProps) {
   };
 
   const switchSpeaker = () => {
-    stopRecording();
-    const nextSpeaker = currentSpeaker === 'partyA' ? 'partyB' : 'partyA';
-    setCurrentSpeaker(nextSpeaker);
-    toast({
-      title: "Speaker Changed",
-      description: `Now recording ${nextSpeaker === 'partyA' ? 'Party A' : 'Party B'}'s statement.`,
+    if (isRecording) {
+      stopRecording();
+    }
+    setCurrentSpeaker(prev => {
+      const newSpeaker = prev === 'partyA' ? 'partyB' : 'partyA';
+      setLastSpeaker(newSpeaker);
+      return newSpeaker;
     });
   };
+
+  // Add effect to check for automatic response generation
+  useEffect(() => {
+    const generateAutomaticResponse = async () => {
+      // Only generate if we have transcripts and both parties have spoken
+      if (transcripts.length > 0 && lastSpeaker && !isWaitingForResponse) {
+        const lastTwoTranscripts = transcripts.slice(-2);
+        if (lastTwoTranscripts.length === 2) {
+          const [first, second] = lastTwoTranscripts;
+          // Check if we have one from each party
+          if (first.speaker !== second.speaker && 
+              (first.speaker === 'partyA' || first.speaker === 'partyB') && 
+              (second.speaker === 'partyA' || second.speaker === 'partyB')) {
+            setIsWaitingForResponse(true);
+            try {
+              const response = await generateDebateResponse(transcripts, debateContext);
+              const newTranscript: TranscriptEntry = {
+                speaker: 'ai',
+                text: response,
+                timestamp: new Date().toISOString(),
+                isFinal: true,
+                confidence: 1,
+                duration: 0
+              };
+              setTranscripts(prev => [...prev, newTranscript]);
+            } catch (error) {
+              console.error('Error generating automatic response:', error);
+              toast({
+                title: "Response Failed",
+                description: "Failed to generate AI response. Please try again.",
+                variant: "destructive"
+              });
+            } finally {
+              setIsWaitingForResponse(false);
+            }
+          }
+        }
+      }
+    };
+
+    generateAutomaticResponse();
+  }, [transcripts, lastSpeaker, debateContext]);
 
   const finishDebate = async () => {
     if (transcripts.length === 0) {

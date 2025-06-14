@@ -115,21 +115,13 @@ export async function generateDebateResponse(
     .map(t => t.text)
     .join('\n');
 
-  const prompt = `Context of the debate: ${debateContext}
+  const prompt = `You're in a debate about ${debateContext}. Here's what was said:
 
-You are an AI assistant participating in a debate. Based on the following statements from Party A and Party B, provide a thoughtful response that:
-1. Acknowledges the key points made by both parties
-2. Identifies areas of agreement and disagreement
-3. Offers insights or perspectives that might help move the discussion forward
-4. Maintains a neutral and constructive tone
-
-Party A's statements:
 ${partyATranscript}
 
-Party B's statements:
 ${partyBTranscript}
 
-Please provide your response in a conversational manner, as if you are actively participating in the debate. Your response should be thoughtful and help facilitate constructive dialogue between the parties.`;
+Respond like a normal person having a conversation and friendly.`;
 
   try {
     const response = await cohere.chat({
