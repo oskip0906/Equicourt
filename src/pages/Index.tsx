@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import CaseSubmission from '../components/CaseSubmission';
 import ProcessingView from '../components/ProcessingView';
 import ResultsView from '../components/ResultsView';
 import Header from '../components/Header';
+import Debate from './Debate';
 
 export type CaseData = {
   id: string;
@@ -79,6 +79,11 @@ const Index = () => {
             onNewCase={handleNewCase}
           />
         )}
+
+        <div className="mt-16 border-t border-slate-200 pt-8">
+          <h2 className="text-2xl font-bold mb-6">Live Debate Recording</h2>
+          <Debate />
+        </div>
       </main>
     </div>
   );
