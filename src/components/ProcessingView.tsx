@@ -3,121 +3,130 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { AIService } from '../services/aiService';
 import type { CaseData } from '../pages/Index';
 
 interface ProcessingViewProps {
   caseData: CaseData;
+  aiConfig: {
+    openaiApiKey?: string;
+    anthropicApiKey?: string;
+  };
   onComplete: (results: CaseData['results']) => void;
 }
 
-const ProcessingView: React.FC<ProcessingViewProps> = ({ caseData, onComplete }) => {
+const ProcessingView: React.FC<ProcessingViewProps> = ({ caseData, aiConfig, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const steps = [
-    { name: 'Transcribing Audio', description: 'Converting speech to text using AI', duration: 3000 },
-    { name: 'Analyzing Facts', description: 'Factual Judge creating timeline of events', duration: 4000 },
-    { name: 'Consulting Legal Precedent', description: 'Legal Precedent Judge reviewing applicable laws', duration: 5000 },
-    { name: 'Reviewing Procedures', description: 'Procedural Judge assessing fairness', duration: 2000 },
-    { name: 'Drafting Verdict', description: 'Verdict Drafting Judge synthesizing final decision', duration: 4000 }
+    { name: 'Processing Statements', description: 'Transcribing audio or processing text', duration: 0 },
+    { name: 'Analyzing Facts', description: 'Factual Judge creating timeline of events', duration: 0 },
+    { name: 'Consulting Legal Precedent', description: 'Legal Precedent Judge reviewing applicable laws', duration: 0 },
+    { name: 'Reviewing Procedures', description: 'Procedural Judge assessing fairness', duration: 0 },
+    { name: 'Drafting Verdict', description: 'Verdict Drafting Judge synthesizing final decision', duration: 0 }
   ];
 
   useEffect(() => {
-    const processSteps = async () => {
-      for (let i = 0; i < steps.length; i++) {
-        setCurrentStep(i);
-        setProgress((i / steps.length) * 100);
+    const processCase = async () => {
+      try {
+        const aiService = new AIService(aiConfig);
         
-        // Simulate processing time
-        await new Promise(resolve => setTimeout(resolve, steps[i].duration));
+        // Step 1: Get transcripts (transcribe audio or use text directly)
+        setCurrentStep(0);
+        setProgress(10);
+        
+        let partyATranscript = '';
+        let partyBTranscript = '';
+        
+        if (caseData.partyAFile) {
+          const transcriptionA = await aiService.transcribeAudio(caseData.partyAFile);
+          partyATranscript = transcriptionA.text;
+        } else if (caseData.partyAText) {
+          partyATranscript = caseData.partyAText;
+        }
+        
+        if (caseData.partyBFile) {
+          const transcriptionB = await aiService.transcribeAudio(caseData.partyBFile);
+          partyBTranscript = transcriptionB.text;
+        } else if (caseData.partyBText) {
+          partyBTranscript = caseData.partyBText;
+        }
+        
+        // Step 2: Factual analysis
+        setCurrentStep(1);
+        setProgress(30);
+        const factualAnalysis = await aiService.analyzeFactually(partyATranscript, partyBTranscript);
+        
+        // Step 3: Legal analysis
+        setCurrentStep(2);
+        setProgress(50);
+        const legalAnalysis = await aiService.analyzeLegalPrecedents(factualAnalysis.timeline);
+        
+        // Step 4: Procedural review
+        setCurrentStep(3);
+        setProgress(70);
+        const proceduralReview = await aiService.reviewProcedures(
+          partyATranscript.length,
+          partyBTranscript.length
+        );
+        
+        // Step 5: Draft verdict
+        setCurrentStep(4);
+        setProgress(90);
+        const finalVerdict = await aiService.draftVerdict(
+          factualAnalysis.timeline,
+          legalAnalysis,
+          proceduralReview,
+          caseData.title,
+          caseData.disputeAmount
+        );
+        
+        setProgress(100);
+        
+        // Complete processing
+        const results = {
+          transcripts: {
+            partyA: partyATranscript,
+            partyB: partyBTranscript,
+          },
+          timeline: factualAnalysis.timeline,
+          legalAnalysis,
+          proceduralReview,
+          finalVerdict,
+        };
+        
+        setTimeout(() => {
+          onComplete(results);
+        }, 1000);
+        
+      } catch (err) {
+        console.error('Processing error:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred during processing');
       }
-      
-      setProgress(100);
-      
-      // Generate mock results
-      const mockResults = {
-        transcripts: {
-          partyA: "I hired the defendant to renovate my kitchen for $5,000. We agreed on a completion date of March 15th. However, the work was not completed until April 10th, and several items were damaged during the renovation process, including my refrigerator and countertop.",
-          partyB: "While I acknowledge the delay, it was due to unforeseen complications with the plumbing that required additional permits. I completed all work to the agreed specifications. The damage mentioned was pre-existing and documented in my initial assessment."
-        },
-        timeline: [
-          {
-            event_description: "Kitchen renovation contract signed for $5,000",
-            timestamp: "February 1st",
-            agreement_status: "Agreed" as const
-          },
-          {
-            event_description: "Agreed completion date: March 15th",
-            timestamp: "February 1st",
-            agreement_status: "Agreed" as const
-          },
-          {
-            event_description: "Discovery of plumbing complications requiring permits",
-            timestamp: "March 10th",
-            agreement_status: "Disputed" as const
-          },
-          {
-            event_description: "Damage to refrigerator and countertop",
-            timestamp: "March 20th",
-            agreement_status: "Disputed" as const
-          },
-          {
-            event_description: "Work completed",
-            timestamp: "April 10th",
-            agreement_status: "Agreed" as const
-          }
-        ],
-        legalAnalysis: {
-          "Kitchen renovation contract signed for $5,000": ["Contract Law § 101: Formation of Valid Contracts"],
-          "Agreed completion date: March 15th": ["Contract Law § 205: Time of Performance"],
-          "Discovery of plumbing complications requiring permits": ["Contract Law § 261: Impossibility of Performance"],
-          "Damage to refrigerator and countertop": ["Tort Law § 402: Property Damage Liability"],
-          "Work completed": ["Contract Law § 205: Substantial Performance"]
-        },
-        proceduralReview: {
-          speaking_time_ratio: 0.85,
-          fairness_assessment: "Balanced" as const
-        },
-        finalVerdict: `# ARBITRATION VERDICT
-
-## Case: ${caseData.title}
-**Dispute Amount:** $${caseData.disputeAmount}
-
-## 1. Findings of Fact
-
-Based on the evidence presented, the following timeline of events has been established:
-
-- **February 1st**: Valid contract formed for kitchen renovation ($5,000, completion by March 15th)
-- **March 10th**: Unforeseen plumbing complications discovered requiring additional permits
-- **March 20th**: Damage occurred to refrigerator and countertop (disputed causation)
-- **April 10th**: Work substantially completed (26 days late)
-
-## 2. Conclusions of Law
-
-**Contract Performance**: While the defendant failed to meet the agreed completion date, the delay was partially attributable to unforeseen circumstances requiring regulatory compliance. This constitutes substantial performance with delay damages applicable.
-
-**Property Damage**: The evidence regarding pre-existing damage versus contractor-caused damage is disputed. Under the burden of proof standard, insufficient evidence exists to establish contractor liability for property damage.
-
-**Time of Performance**: The 26-day delay beyond the agreed completion date constitutes a material breach, though not sufficient to void the contract given substantial performance.
-
-## 3. Remedies & Next Steps
-
-**Monetary Award**: The plaintiff is entitled to damages for delayed completion. Standard industry practice allows for 1% of contract value per week of delay. 
-
-**Calculation**: $5,000 × 1% × 4 weeks = $200
-
-**Final Order**: Defendant shall pay plaintiff $200 in delay damages. No additional damages are awarded for disputed property damage due to insufficient evidence.
-
-**Case Status**: CLOSED - Damages awarded to plaintiff in the amount of $200.`
-      };
-      
-      setTimeout(() => {
-        onComplete(mockResults);
-      }, 1000);
     };
 
-    processSteps();
-  }, [caseData, onComplete]);
+    processCase();
+  }, [caseData, aiConfig, onComplete]);
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-800">Processing Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-700">{error}</p>
+            <p className="text-sm text-red-600 mt-2">
+              Please check your API keys and try again.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
