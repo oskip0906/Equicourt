@@ -1,5 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
 
 interface TranscriptEntry {
   speaker: 'partyA' | 'partyB' | 'ai';
@@ -21,16 +21,6 @@ interface DebateAnalysis {
   conclusion: string;
   finalDecision: string;
 }
-
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function analyzeDebateTranscripts(
   transcripts: TranscriptEntry[],
