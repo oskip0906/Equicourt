@@ -1,73 +1,54 @@
-# Welcome to your Lovable project
+# ⚖️ EquiCourt
 
-## Project info
+**EquiCourt** ends petty disputes in under 3 minutes. Upload photos, audio, or documents — and our AI judge cites exact laws and issues a transparent, fair verdict. Built to make justice **swift, accessible, and AI-driven**.
 
-**URL**: https://lovable.dev/projects/e65868e1-c92a-47d8-8c5c-799b7002d8ca
+![EquiCourt Screenshot](https://d112y698adiu2z.cloudfront.net/photos/production/software_photos/003/476/195/datas/original.png)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 Inspiration
 
-**Use Lovable**
+Millions of minor disputes — parking tickets, landlord-tenant conflicts, broken agreements — clog our courts and overwhelm self-represented litigants. We asked:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e65868e1-c92a-47d8-8c5c-799b7002d8ca) and start prompting.
+> *“What if an AI judge could understand messy evidence, interpret the law, and resolve disputes in minutes?”*
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🧠 What It Does
 
-**Use your preferred IDE**
+EquiCourt is a **multimodal, multi-LLM micro-litigation platform** that:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Accepts **text, PDFs, images, and voice recordings** as evidence
+- Records and transcribes live conversations using the **Web Speech API**
+- Summarizes the dispute using **Cohere Command R+**
+- Issues verdicts and remedies using **Gemini 2.0 Flash**, grounded in Canadian law via a **RAG pipeline**
+- Cites legal precedents, with **confidence bars** and **clear remedy suggestions**
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🏗️ How We Built It
 
-Follow these steps:
+- **Frontend**: Vite, custom UI for evidence intake and session recording
+- **Multimodal Intake**:
+  - 🧾 PDFs & screenshots → parsed via [Docling](https://docling.io)
+  - 🎙️ Speech captured using MDN Web Speech API
+- **Reasoning Core**:
+  - 🤖 `Cohere Command R+` summarizes each party’s speech and uploaded material
+  - 🧠 `Gemini 2.0 Flash` applies reasoning with a RAG system connected to Canadian legal texts
+- **RAG System**:
+  - Retrieves statutes and constitutional laws dynamically
+  - Applies fine-grained chunking and compression to optimize LLM context windows
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🛠️ Tech Stack
 
-# Step 3: Install the necessary dependencies.
-npm i
+| Category       | Tools Used                                    |
+|----------------|-----------------------------------------------|
+| Frontend       | Vite, JavaScript                              |
+| Speech Input   | MDN Web Speech API                            |
+| PDF/Doc Input  | Docling                                        |
+| LLMs           | Cohere Command R+, Gemini 2.0 Flash           |
+| Legal Reasoning| RAG pipeline, Canadian Law Corpus             |
+| Infra          | Custom hosting, edge-optimized processing     |
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+> **EquiCourt** is committed to redefining justice for the digital age — one dispute at a time.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/e65868e1-c92a-47d8-8c5c-799b7002d8ca) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
