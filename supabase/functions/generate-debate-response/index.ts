@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { CohereClientV2 } from "https://esm.sh/cohere-ai@7.17.1"
 
@@ -18,7 +19,10 @@ interface TranscriptEntry {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { 
+      status: 200,
+      headers: corsHeaders 
+    })
   }
 
   try {
@@ -88,3 +92,4 @@ Respond like a normal person having a conversation and friendly also ask follow 
     )
   }
 })
+
